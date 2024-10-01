@@ -146,6 +146,10 @@ fun loadJavaMethod(className: String, methodName: String, classPath: String): Me
                             )
                             visitLdcInsn(line)
                             visitInsn(Opcodes.IADD)
+                            visitIntInsn(Opcodes.BIPUSH, 17)
+                            visitInsn(Opcodes.IMUL)
+                            visitIntInsn(Opcodes.BIPUSH, 123)
+                            visitInsn(Opcodes.IADD)
                             visitFieldInsn(
                                 Opcodes.PUTSTATIC, ownerName, fieldName, "I"
                             )
