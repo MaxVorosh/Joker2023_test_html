@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <title>HTML Document Template</title>
+  <style>
+    p {
+      font-family: Arial;
+    }
+  </style>
+</head>
+<body>
+  <p>Hello, world!</p>
+  <script>
+    console.log(document.querySelector('p').textContent);
+  </script>
+  <div>Nice<!--NotNice--></div><br>
+  <div><a href="NotNice">Nice</a><div>
+  <><br>
+  <abbr title="NotNice">Nice</abbr>
+  <address>Adress</address>
+  <b>Bold</b><br><br>
+  <cite>Cite</cite> <br>
+  <code>print("Hello world")</code>
+<samp>Hello, world</samp><br>
+  <del>del</del>
+  <dt>
+    <dfn>dfn</dfn>
+    <dd>Definition</dd>
+  </dt>
+  <em>Emphasise</em>
+  <legend> Legend </legend>
+  <fieldset>
+    <h1>H1</h1>
+    <h2>H2</h2>
+    <h3>H3</h3>
+    <h4>H4</h4>
+    <h5>H5</h5>
+    <h6>H6</h6>
+  </fieldset>
+  <hr>
+  <img src="Nice"></img>
+  <i>Cursive</i>
+  <ins>Insist</ins>
+  <ol>
+  <li>1.</li>
+  <li>2.</li>
+  <li>3.</li>
+  <li>4.</li>
+  <li>5.</li>
+  </ol>
+  <p>Paragraph</p>
+  <div>
+  <q>Quote</q>, - Author
+  </div>
+<s>Strike</s>
+<small>Объясни свою маленькость</small><sub>Sub</sub><sup>Sup</sup><u>Underline</u>
+<ul>
+<li>dot</li>
+<li>dot</li>
+<li>dot</li>
+<li>dot</li>
+<li>dot</li>
+</ul>
+</body>
+</html>

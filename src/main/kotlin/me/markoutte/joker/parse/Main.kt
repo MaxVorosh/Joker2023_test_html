@@ -10,12 +10,14 @@ import java.lang.reflect.Method
 import java.net.URLClassLoader
 import java.nio.ByteBuffer
 import java.nio.charset.Charset
+import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
 import java.util.concurrent.TimeUnit
 import kotlin.io.path.writeBytes
 import kotlin.random.Random
+import java.io.IOException;
 
 @ExperimentalStdlibApi
 fun main(args: Array<String>) {
@@ -30,7 +32,7 @@ fun main(args: Array<String>) {
     val className = parser.getOptionValue("class")
     val methodName = parser.getOptionValue("method")
     val classPath = parser.getOptionValue("classpath")
-    val timeout = parser.getOptionValue("timeout")?.toLong() ?: 10L
+    val timeout = parser.getOptionValue("timeout")?.toLong() ?: 100L
     val seed = parser.getOptionValue("seed")?.toInt() ?: Random.nextInt()
     val random = Random(seed)
 
@@ -47,18 +49,9 @@ fun main(args: Array<String>) {
     }
 
     val seeds = mutableMapOf<Int, ByteArray>(
-        -1 to """<!DOCTYPE html>
-<html>
-<body>
-
-<h1>My First Heading</h1>
-
-<p>My first paragraph.</p>
-
-</body>
-</html>
-
-""".asByteArray(b.size)!!
+        -1 to Files.readString(Paths.get("src/main/kotlin/me/markoutte/joker/parse/my_html.txt"), Charsets.UTF_8).asByteArray(b.size)!!,
+        -2 to Files.readString(Paths.get("src/main/kotlin/me/markoutte/joker/parse/recursive.txt"), Charsets.UTF_8).asByteArray(b.size)!!,
+        -3 to Files.readString(Paths.get("src/main/kotlin/me/markoutte/joker/parse/github.txt"), Charsets.UTF_8).asByteArray(b.size)!!
     )
 
     while(System.nanoTime() - start < TimeUnit.SECONDS.toNanos(timeout)) {
