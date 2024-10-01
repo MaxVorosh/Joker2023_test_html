@@ -47,7 +47,18 @@ fun main(args: Array<String>) {
     }
 
     val seeds = mutableMapOf<Int, ByteArray>(
-        -1 to """{"name": { "arr": [1, 2, 3] }}""".asByteArray(b.size)!!
+        -1 to """<!DOCTYPE html>
+<html>
+<body>
+
+<h1>My First Heading</h1>
+
+<p>My first paragraph.</p>
+
+</body>
+</html>
+
+""".asByteArray(b.size)!!
     )
 
     while(System.nanoTime() - start < TimeUnit.SECONDS.toNanos(timeout)) {
@@ -190,8 +201,16 @@ fun Random.mutate(buffer: ByteArray): ByteArray = buffer.clone().apply {
     val repeat = nextInt((size - position))
     val from = nextInt(-128, 127)
     val until = nextInt(from + 1, 128)
-    repeat(repeat) { i ->
-        set(position + i, nextInt(from, until).toByte())
+    val type = nextInt(0, 2)
+    if (type == 0) {
+        repeat(repeat) { i ->
+            set(position + i, nextInt(from, until).toByte())
+        }
+    }
+    else {
+        repeat(repeat) { i ->
+            set(nextInt(0, size), nextInt(from, until).toByte())
+        }
     }
 }
 
