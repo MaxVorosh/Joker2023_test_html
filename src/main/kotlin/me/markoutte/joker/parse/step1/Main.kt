@@ -124,7 +124,7 @@ fun main(args: Array<String>) {
     val className = parser.getOptionValue("class")
     val methodName = parser.getOptionValue("method")
     val classPath = parser.getOptionValue("classpath")
-    val timeout = parser.getOptionValue("timeout")?.toLong() ?: 10L
+    val timeout = parser.getOptionValue("timeout")?.toLong() ?: 43200L
     val seed = parser.getOptionValue("seed")?.toInt() ?: nextInt()
     val random = Random(seed)
 
