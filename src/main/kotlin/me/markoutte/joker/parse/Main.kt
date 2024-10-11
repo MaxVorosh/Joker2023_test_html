@@ -32,13 +32,13 @@ fun main(args: Array<String>) {
     val className = parser.getOptionValue("class")
     val methodName = parser.getOptionValue("method")
     val classPath = parser.getOptionValue("classpath")
-    val timeout = parser.getOptionValue("timeout")?.toLong() ?: 100L
+    val timeout = parser.getOptionValue("timeout")?.toLong() ?: 3600L
     val seed = parser.getOptionValue("seed")?.toInt() ?: Random.nextInt()
     val random = Random(seed)
 
     println("Running: $className.$methodName) with seed = $seed")
     val errors = mutableSetOf<String>()
-    val b = ByteArray(300)
+    val b = ByteArray(1000)
     val start = System.nanoTime()
 
     val javaMethod = try {
@@ -49,15 +49,16 @@ fun main(args: Array<String>) {
     }
 
     val seeds = mutableMapOf<Int, ByteArray>(
-        -1 to Files.readString(Paths.get("src/main/kotlin/me/markoutte/joker/parse/my_html.txt"), Charsets.UTF_8).asByteArray(b.size)!!,
-        -2 to Files.readString(Paths.get("src/main/kotlin/me/markoutte/joker/parse/recursive.txt"), Charsets.UTF_8).asByteArray(b.size)!!,
-        -3 to Files.readString(Paths.get("src/main/kotlin/me/markoutte/joker/parse/github.txt"), Charsets.UTF_8).asByteArray(b.size)!!
+        -1 to Files.readString(Paths.get("src/main/kotlin/me/markoutte/joker/parse/headless_my_html.txt"), Charsets.UTF_8).asByteArray(b.size)!!,
+        -2 to Files.readString(Paths.get("src/main/kotlin/me/markoutte/joker/parse/headless_recursive.txt"), Charsets.UTF_8).asByteArray(b.size)!!,
+        -3 to Files.readString(Paths.get("src/main/kotlin/me/markoutte/joker/parse/headless_github.txt"), Charsets.UTF_8).asByteArray(b.size)!!
     )
 
     while(System.nanoTime() - start < TimeUnit.SECONDS.toNanos(timeout)) {
         val buffer = seeds.values.randomOrNull(random)?.let(Random::mutate)
             ?: b.apply(random::nextBytes)
-        val inputValues = generateInputValues(javaMethod, buffer)
+        val wrapped_buffer = wrap(buffer)
+        val inputValues = generateInputValues(javaMethod, wrapped_buffer)
         val inputValuesString = "${javaMethod.name}: ${inputValues.contentDeepToString()}"
         try {
             ExecutionPath.id = 0
@@ -75,9 +76,9 @@ fun main(args: Array<String>) {
                 Files.write(path, listOf(
                     "${e.targetException.stackTraceToString()}\n",
                     "$inputValuesString\n",
-                    "${buffer.contentToString()}\n",
+                    "${wrapped_buffer.contentToString()}\n",
                 ))
-                Files.write(path, buffer, StandardOpenOption.APPEND)
+                Files.write(path, wrapped_buffer, StandardOpenOption.APPEND)
                 println("Saved to: ${path.fileName}")
             }
         }
@@ -193,13 +194,76 @@ object ExecutionPath {
     var id: Int = 0
 }
 
+fun create_str(strLen: Int): String {
+    var b = ""
+    for (i in 1..strLen) {
+        b += Char(Random.nextInt(1, 256))
+    }
+    return b
+}
+
+fun create_list(type: String, strLen: Int, listLen: Int): String {
+    val size = Random.nextInt(1, listLen)
+    var b = "<$type>"
+    for (i in 1..size) {
+        val content = create_str(strLen)
+        b += "<li>$content</li>"
+    }
+    b += "</$type>"
+    return b
+}
+fun create_start_entity(strLen: Int, listLen: Int): String {
+    var b = create_str(strLen)
+    val options = arrayOf("ol", "ul", "a", "img", "definition", "None")
+    val type = Random.nextInt(0, options.size)
+    if (type <= 1) {
+        b = create_list(options[type], strLen, listLen)
+    }
+    else if (type == 2) {
+        val link = create_str(strLen)
+        b = "<a href=\"$link\">$b</a>"
+    }
+    else if (type == 3) {
+        val source = create_str(strLen)
+        b = "<img src=\"$source\">$b</img>"
+    }
+    else if (type == 4) {
+        val dfn = create_str(strLen)
+        val dd = create_str(strLen)
+        b = "<definition><dfn>$dfn</dfn><dd>$dd</dd></definition>"
+    }
+    return b
+}
+fun wrap(buffer: ByteArray): ByteArray = buffer.clone().apply {
+    val buf_2 = "<!DOCTYPE html><html lang=\"en\"><head></head><body>${String(this)}</body></html>".asByteArray(this.size)!!
+    repeat(this.size) { i ->
+        set(i, buf_2[i])
+    }
+}
+
 fun Random.mutate(buffer: ByteArray): ByteArray = buffer.clone().apply {
     val position = nextInt(0, size)
     val repeat = nextInt((size - position))
     val from = nextInt(-128, 127)
     val until = nextInt(from + 1, 128)
-    val type = nextInt(0, 2)
-    if (type == 0) {
+    val type = nextInt(0, 202)
+    if (type < 100) {
+        val tag_names = arrayOf("div", "p", "address", "b", "cite", "samp", "del", "em",
+            "legend", "i", "ins", "q", "s", "small", "h1", "h2", "h3", "h4", "h5", "h6",
+            "fieldset", "strong", "sup", "sub", "u", "ins", "mark", "pre", "span")
+        val tag_pos = nextInt(0, tag_names.size)
+        val buf_2 = "<${tag_names[tag_pos]}>${String(this)}</${tag_names[tag_pos]}>".asByteArray(this.size)!!
+        repeat(this.size) { i ->
+            set(i, buf_2[i])
+        }
+    }
+    else if (type < 200) {
+        val buf_2 = "${String(this)}${create_start_entity(5, 5)}".asByteArray(this.size)!!
+        repeat(this.size) { i ->
+            set(i, buf_2[i])
+        }
+    }
+    else if (type == 200) {
         repeat(repeat) { i ->
             set(position + i, nextInt(from, until).toByte())
         }
